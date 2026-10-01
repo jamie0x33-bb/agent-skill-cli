@@ -1,12 +1,13 @@
 """Runtime configuration and credential resolution.
 
-Auth credentials are resolved from the first available source in this order:
+Auth credentials are resolved from the first available source:
 
 1. ``SKILL_REGISTRY_TOKEN`` — explicit registry credential
-2. ``PPLX_CONNECTOR_API_KEY`` — connector-scoped key
-3. ``PPLX_AGENT_PROXY_TOKEN`` — session-level proxy credential
+2. ``PPLX_SDK_API_KEY`` — SDK credential
+3. ``PPLX_CONNECTOR_API_KEY`` — connector-scoped key
 
-The resolved credential is used as a Bearer token for registry operations.
+The resolved credential is sent as an ``x-api-key`` header for registry
+operations.
 """
 
 from __future__ import annotations
@@ -21,8 +22,8 @@ REGISTRY_URL = os.environ.get(
 
 AUTH_CHAIN = [
     "SKILL_REGISTRY_TOKEN",
+    "PPLX_SDK_API_KEY",
     "PPLX_CONNECTOR_API_KEY",
-    "PPLX_AGENT_PROXY_TOKEN",
 ]
 
 
@@ -39,7 +40,7 @@ class Config:
     def auth_header(self) -> dict[str, str]:
         if not self.auth_token:
             return {}
-        return {"authorization": f"Bearer {self.auth_token}"}
+        return {"x-api-key": self.auth_token}
 
 
 def load_auth() -> str | None:

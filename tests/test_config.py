@@ -20,7 +20,7 @@ def test_load_auth_chain(monkeypatch):
 
 def test_load_auth_priority(monkeypatch):
     monkeypatch.setenv("SKILL_REGISTRY_TOKEN", "first")
-    monkeypatch.setenv("PPLX_AGENT_PROXY_TOKEN", "last")
+    monkeypatch.setenv("PPLX_SDK_API_KEY", "second")
     assert load_auth() == "first"
 
 
