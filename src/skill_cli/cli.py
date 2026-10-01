@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, config, validate, build
+from . import __version__, config, validate, build, publish as pub
 
 
 def _validate(args) -> int:
@@ -42,6 +42,22 @@ def _auth(args) -> int:
     return 0
 
 
+def _publish(args) -> int:
+    result = pub.publish(Path(args.directory), dry_run=args.dry_run)
+    if args.json:
+        print(json.dumps(result, indent=2))
+    elif result.get("registered"):
+        print(f"registered — publish_id: {result.get('publish_id', 'n/a')}")
+    elif result.get("error"):
+        print(f"error: {result['error']}", file=sys.stderr)
+        if "message" in result:
+            print(result["message"], file=sys.stderr)
+        return 1
+    else:
+        print(json.dumps(result, indent=2))
+    return 0
+
+
 def _info(args) -> int:
     cfg = config.load()
     info = {
@@ -75,6 +91,12 @@ def main(argv: list[str] | None = None) -> int:
 
     i = sub.add_parser("info", help="environment info")
     i.set_defaults(func=_info)
+
+    pu = sub.add_parser("publish", help="publish a skill to the registry")
+    pu.add_argument("directory")
+    pu.add_argument("--dry-run", action="store_true")
+    pu.add_argument("--json", action="store_true")
+    pu.set_defaults(func=_publish)
 
     args = p.parse_args(argv)
     return args.func(args)
